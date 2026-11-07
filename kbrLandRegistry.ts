@@ -1,6 +1,6 @@
-import { LandParcel } from '../types/land';
-import { evaluateLegalStatus } from '../utils/legalEngine';
-import { calculateEconomics } from '../utils/economics';
+import { LandParcel } from './land';
+import { evaluateLegalStatus } from './legalEngine';
+import { calculateEconomics } from './economics';
 
 export const KBR_LAND_PARCELS: LandParcel[] = [
   // 1. Урванский район - Интенсивный сад / Ягодное производство (Нарткала)
