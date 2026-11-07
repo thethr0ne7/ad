@@ -7,6 +7,7 @@ import { ParcelDossierModal } from './ParcelDossierModal';
 import { SourcesStatusModal } from './SourcesStatusModal';
 import { CadastralSearchModal } from './CadastralSearchModal';
 import { DataImportModal } from './DataImportModal';
+import { CandidateMapModal } from './CandidateMapModal';
 import { QuotaExceededBanner } from './QuotaExceededBanner';
 import { KBR_LAND_PARCELS } from './kbrLandRegistry';
 import { INITIAL_REGISTRY_SOURCES } from './sourcesService';
@@ -36,6 +37,7 @@ export default function App() {
   const [isSourcesModalOpen, setIsSourcesModalOpen] = useState(false);
   const [isCadastralSearchOpen, setIsCadastralSearchOpen] = useState(false);
   const [isDataImportOpen, setIsDataImportOpen] = useState(false);
+  const [isCandidateMapOpen, setIsCandidateMapOpen] = useState(false);
 
   // Dynamic state for land parcels (preloaded with verified KBR parcels + supports user imports)
   const [parcels, setParcels] = useState<LandParcel[]>([]); // no invented official inventory
@@ -271,6 +273,7 @@ export default function App() {
         onOpenSourcesModal={() => setIsSourcesModalOpen(true)}
         onOpenCadastralSearch={() => setIsCadastralSearchOpen(true)}
         onOpenDataImport={() => setIsDataImportOpen(true)}
+        onOpenCandidateMap={() => setIsCandidateMapOpen(true)}
         sourcesCount={sources.length}
         totalParcelsCount={parcels.length}
       />
@@ -479,6 +482,8 @@ export default function App() {
         />
       )}
 
+      {isCandidateMapOpen && <CandidateMapModal onClose={() => setIsCandidateMapOpen(false)} />}
+
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-900 bg-slate-950 px-4 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -486,7 +491,7 @@ export default function App() {
             © 2026 DIVE LAND INTELLIGENCE • Кабардино-Балкарская Республика
           </span>
           <span className="text-[11px] text-slate-400">
-            Интеграция: ГИС Торги, Росреестр ЕГРН, НСПД РФ, Минземимущество КБР, Минсельхоз КБР
+            Поиск кандидатных контуров: OpenStreetMap. Правовой статус устанавливается только по подтверждённым сведениям.
           </span>
         </div>
       </footer>
