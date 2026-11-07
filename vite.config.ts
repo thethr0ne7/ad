@@ -2,8 +2,8 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig, Plugin } from 'vite';
-import { analyzeLandParcelWithAi } from './src/server/geminiService';
-import { INITIAL_REGISTRY_SOURCES } from './src/services/sourcesService';
+import { analyzeLandParcelWithAi } from './geminiService';
+import { INITIAL_REGISTRY_SOURCES } from './sourcesService';
 
 function apiServerPlugin(): Plugin {
   return {
