@@ -1,5 +1,5 @@
 import React from 'react';
-import { RegistrySourceStatus } from '../types/land';
+import { RegistrySourceStatus } from './land';
 import {
   X,
   RefreshCw,
