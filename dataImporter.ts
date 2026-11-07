@@ -1,4 +1,4 @@
-import { LandParcel, KbrDistrict, SearchPurpose, OwnershipType, LandCategory } from '../types/land';
+import { LandParcel, KbrDistrict, SearchPurpose, OwnershipType, LandCategory } from './land';
 import { evaluateLegalStatus } from './legalEngine';
 import { calculateEconomics } from './economics';
 
