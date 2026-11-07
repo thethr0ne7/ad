@@ -54,10 +54,10 @@ async function probeSource(source: RegistrySourceStatus): Promise<RegistrySource
     const elapsed = Date.now() - startTime;
     return {
       ...source,
-      status: response.ok ? 'connected' : 'restricted_geo',
+      status: response.ok ? 'partially_available' : 'offline',
       statusLabel: response.ok
-        ? `Доступно (HTTP ${response.status})`
-        : `Ограничен внешний IP (HTTP ${response.status})`,
+        ? `Веб-страница доступна (HTTP ${response.status}); API не проверен`
+        : `HTTP ${response.status}; причина отказа не определена`,
       httpStatus: response.status,
       lastPingMs: elapsed,
       lastSyncTime: `Проверено в ${nowStr}`,
@@ -69,16 +69,14 @@ async function probeSource(source: RegistrySourceStatus): Promise<RegistrySource
 
     return {
       ...source,
-      status: 'restricted_geo',
+      status: isTimeout ? 'timeout' : 'offline',
       statusLabel: isTimeout
-        ? 'Ограничен внешний IP (Geo-WAF таймаут)'
-        : 'Защищенный периметр (ГОСТ TLS / Geo-WAF)',
+        ? 'Истекло время ожидания; причина неизвестна'
+        : 'Ошибка соединения; причина не установлена',
       httpStatus: 0,
       lastPingMs: elapsed,
       lastSyncTime: `Диагностика в ${nowStr}`,
-      diagnosticDetails: isTimeout
-        ? `Прямое сетевое подключение к ${new URL(source.url).hostname} прервано по таймауту (${elapsed} мс). Сервер защищен российским межсетевым экраном (Geo-IP фильтрация). Доступ возможен через браузер заявителя или сертифицированный импорт XML/GeoJSON.`
-        : `Шлюз ${new URL(source.url).hostname} отклонил соединение из внешнего датацентра (${err?.message || 'ECONNREFUSED'}). Используйте прямой переход или импорт данных.`,
+      diagnosticDetails: `Проверка доступности главной страницы ${new URL(source.url).hostname}; доступ к данным реестра и API не проверен. Ошибка: ${String(err?.message || 'unknown').slice(0,180)}`,
       isLiveProbe: true,
     };
   }
