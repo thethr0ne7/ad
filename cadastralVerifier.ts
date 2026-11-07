@@ -1,5 +1,5 @@
-import { CadastralVerificationResult, LandParcel } from '../types/land';
-import { KBR_LAND_PARCELS } from '../data/kbrLandRegistry';
+import { CadastralVerificationResult, LandParcel } from './land';
+import { KBR_LAND_PARCELS } from './kbrLandRegistry';
 
 const KBR_DISTRICT_CODES: Record<string, string> = {
   '01': 'Баксанский район',
@@ -64,18 +64,11 @@ export function verifyCadastralNumber(inputNumber: string): CadastralVerificatio
   const gisTorgiUrl = `https://torgi.gov.ru/new/public/lots/reg?searchString=${encodeURIComponent(cleanNumber)}`;
   const egrnPortalUrl = `https://rosreestr.gov.ru/wps/portal/online_request?cad_num=${encodeURIComponent(cleanNumber)}`;
 
-  let legalAnalysisSummary = '';
-  if (matchedParcel) {
-    legalAnalysisSummary = matchedParcel.legal.isEligibleDirectLeaseWithoutAuction
-      ? `Участок включен в муниципальный фонд перераспределения земель ${matchedParcel.district}. Доступен для предоставления в аренду главе КФХ БЕЗ проведения торгов на основании ст. 39.18 ЗК РФ и 101-ФЗ.`
-      : matchedParcel.legal.hasAuctionNoticePublished
-      ? `По данному участку опубликовано извещение об аукционе на ГИС Торги (Лот № ${matchedParcel.legal.auctionNoticeNumber}). Предоставление осуществляется по ст. 39.11-39.13 ЗК РФ.`
-      : `Участок находится в государственной/муниципальной собственности. Основание: аренда или инвестиционный проект КБР.`;
-  } else if (isKbr) {
-    legalAnalysisSummary = `Кадастровый номер относится к Кабардино-Балкарии (${districtName}). Участок подлежит правовой проверке через прямое обращение к ЕГРН и муниципальному фонду перераспределения земель.`;
-  } else {
-    legalAnalysisSummary = `Участок относится к региону ${regionCode}. Настоящая система специализирована на земельных ресурсах Кабардино-Балкарской Республики (код 07).`;
-  }
+  // This function validates the number syntax only, not EGRN registration or rights.
+  // A match in bundled demonstration data is NOT official verification.
+  const legalAnalysisSummary = isKbr
+    ? 'Формат кадастрового номера корректен. Наличие участка, его границы, права, ограничения и доступность не проверены в ЕГРН. Проверьте сведения в официальных источниках.'
+    : 'Формат кадастрового номера корректен, но этот номер не относится к КБР. ЕГРН не проверен.';
 
   return {
     isValidCadastralFormat: true,
@@ -85,8 +78,8 @@ export function verifyCadastralNumber(inputNumber: string): CadastralVerificatio
     districtCode,
     districtName,
     quarterCode,
-    isRegisteredInKbrRegistry: Boolean(matchedParcel),
-    matchedParcel,
+    isRegisteredInKbrRegistry: false, // bundled demo data are not an official registry
+    matchedParcel: undefined,
     directLinks: {
       rosreestrPkkUrl,
       nspdUrl,
