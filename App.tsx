@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Header } from './components/Header';
-import { FilterBar } from './components/FilterBar';
-import { ParcelCard } from './components/ParcelCard';
-import { LandMapView } from './components/LandMapView';
-import { ParcelDossierModal } from './components/ParcelDossierModal';
-import { SourcesStatusModal } from './components/SourcesStatusModal';
-import { CadastralSearchModal } from './components/CadastralSearchModal';
-import { DataImportModal } from './components/DataImportModal';
-import { QuotaExceededBanner } from './components/QuotaExceededBanner';
-import { KBR_LAND_PARCELS } from './data/kbrLandRegistry';
-import { INITIAL_REGISTRY_SOURCES } from './services/sourcesService';
-import { LandParcel, SearchFilterState, RegistrySourceStatus } from './types/land';
+import { Header } from './Header';
+import { FilterBar } from './FilterBar';
+import { ParcelCard } from './ParcelCard';
+import { LandMapView } from './LandMapView';
+import { ParcelDossierModal } from './ParcelDossierModal';
+import { SourcesStatusModal } from './SourcesStatusModal';
+import { CadastralSearchModal } from './CadastralSearchModal';
+import { DataImportModal } from './DataImportModal';
+import { QuotaExceededBanner } from './QuotaExceededBanner';
+import { KBR_LAND_PARCELS } from './kbrLandRegistry';
+import { INITIAL_REGISTRY_SOURCES } from './sourcesService';
+import { LandParcel, SearchFilterState, RegistrySourceStatus } from './land';
 import {
   ShieldCheck,
   TrendingUp,
