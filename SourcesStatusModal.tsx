@@ -105,7 +105,7 @@ export const SourcesStatusModal: React.FC<SourcesStatusModalProps> = ({
                           ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50'
                           : isGeoRestricted
                           ? 'bg-amber-400 shadow-sm shadow-amber-400/50'
-                          : 'bg-rose-400 shadow-sm shadow-rose-400/50'
+                          : src.status === 'unknown' ? 'bg-slate-400' : 'bg-rose-400 shadow-sm shadow-rose-400/50'
                       }`}
                     />
                     <span className="font-bold text-white text-sm">
@@ -116,7 +116,7 @@ export const SourcesStatusModal: React.FC<SourcesStatusModalProps> = ({
                   <div className="flex items-center space-x-2.5 text-[11px]">
                     <span className="text-slate-400 flex items-center space-x-1 font-mono">
                       <Activity className="w-3 h-3 text-slate-400" />
-                      <span>{src.lastPingMs} мс</span>
+                      <span>{src.isLiveProbe ? `${src.lastPingMs} мс` : 'Нет проверки'}</span>
                     </span>
                     <span
                       className={`font-semibold px-2 py-0.5 rounded border ${
@@ -124,7 +124,7 @@ export const SourcesStatusModal: React.FC<SourcesStatusModalProps> = ({
                           ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60'
                           : isGeoRestricted
                           ? 'bg-amber-950/80 text-amber-300 border-amber-800/60'
-                          : 'bg-rose-950/80 text-rose-300 border-rose-800/60'
+                          : src.status === 'unknown' ? 'bg-slate-800 text-slate-300 border-slate-700' : 'bg-rose-950/80 text-rose-300 border-rose-800/60'
                       }`}
                     >
                       {src.statusLabel || (isConnected ? 'Подключено' : 'Ограничено')}
