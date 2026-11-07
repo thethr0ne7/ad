@@ -38,7 +38,7 @@ export default function App() {
   const [isDataImportOpen, setIsDataImportOpen] = useState(false);
 
   // Dynamic state for land parcels (preloaded with verified KBR parcels + supports user imports)
-  const [parcels, setParcels] = useState<LandParcel[]>(KBR_LAND_PARCELS);
+  const [parcels, setParcels] = useState<LandParcel[]>([]); // no invented official inventory
   const [importNotification, setImportNotification] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<'split' | 'map' | 'list'>('split');
@@ -52,7 +52,7 @@ export default function App() {
     district: 'all',
     municipality: '',
     purpose: 'any',
-    minAreaHa: 5,
+    minAreaHa: 0.1,
     maxAreaHa: 100,
     category: 'all',
     permittedUse: 'all',
@@ -106,7 +106,7 @@ export default function App() {
       return [...newItems, ...prev];
     });
 
-    setImportNotification(`Успешно импортировано ${imported.length} объектов из официальной выгрузки.`);
+    setImportNotification(`Импортировано ${imported.length} объектов. Подлинность и актуальность источника не проверены.`);
     setSelectedParcel(imported[0]);
     setDossierInitialTab('overview');
 
@@ -238,7 +238,7 @@ export default function App() {
       district: 'all',
       municipality: '',
       purpose: 'any',
-      minAreaHa: 5,
+      minAreaHa: 0.1,
       maxAreaHa: 100,
       category: 'all',
       permittedUse: 'all',
