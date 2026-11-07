@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { verifyCadastralNumber } from '../utils/cadastralVerifier';
-import { LandParcel, CadastralVerificationResult } from '../types/land';
-import { evaluateLegalStatus } from '../utils/legalEngine';
-import { calculateEconomics } from '../utils/economics';
+import { verifyCadastralNumber } from './cadastralVerifier';
+import { LandParcel, CadastralVerificationResult } from './land';
+import { evaluateLegalStatus } from './legalEngine';
+import { calculateEconomics } from './economics';
 import {
   X,
   Search,
