@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Поиск и правовая оценка государственных и муниципальных земельных ресурсов
+              Поиск кандидатных территорий, построение контуров и предварительный анализ
             </p>
           </div>
         </div>
@@ -88,12 +88,12 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenSourcesModal}
             className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-300 hover:text-white flex items-center space-x-1.5 transition"
-            title="Просмотр статуса подключения официальных источников"
+            title="Справочные ссылки на государственные источники"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm" />
             <Database className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden lg:inline">Источники:</span>
-            <strong className="text-white">{sourcesCount} реестров</strong>
+            <span className="hidden lg:inline">Справочники:</span>
+            <strong className="text-white">{sourcesCount} ссылок</strong>
           </button>
 
           {/* View Mode Toggle Buttons */}
