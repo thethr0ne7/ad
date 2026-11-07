@@ -169,7 +169,7 @@ export function parseOfficialData(rawText: string, format: 'xml' | 'geojson' | '
           sourceExternalId: `NSPD-IMP-${Date.now()}`,
           sourceUrl: 'https://nspd.gov.ru/',
           discoveryDate: now,
-          verificationStatus: 'unallocated_contour',
+          verificationStatus: 'unverified_import',
           utilities,
           agro: {
             soilType: 'Предкавказский выщелоченный чернозем',
@@ -282,7 +282,7 @@ export function parseOfficialData(rawText: string, format: 'xml' | 'geojson' | '
           sourceExternalId: `MUN-CSV-${cadastralNumber.replace(/:/g, '')}`,
           sourceUrl: 'https://nalchik.kbr.ru/',
           discoveryDate: now,
-          verificationStatus: 'municipal_fund',
+          verificationStatus: 'unverified_import',
           utilities,
           agro: {
             soilType: 'Предкавказский выщелоченный чернозем',
@@ -392,7 +392,7 @@ export function parseOfficialData(rawText: string, format: 'xml' | 'geojson' | '
           sourceExternalId: `TORGI-LOT-${cadastralNumber.replace(/:/g, '')}`,
           sourceUrl: 'https://torgi.gov.ru/',
           discoveryDate: now,
-          verificationStatus: 'published_torgi',
+          verificationStatus: 'unverified_import',
           utilities,
           agro: {
             soilType: 'Предкавказский чернозем карбонатный',
@@ -408,13 +408,13 @@ export function parseOfficialData(rawText: string, format: 'xml' | 'geojson' | '
             {
               id: `hist-${Date.now()}`,
               date: `${now} (Сегодня)`,
-              action: 'Импорт официального извещения из XML-выгрузки ГИС Торги РФ',
+              action: 'Импорт пользовательского XML-файла, требует независимой проверки',
               author: 'ГИС Торги (torgi.gov.ru)',
               documentNumber: `Извещение ст. 39.18 ЗК РФ № ${cadastralNumber.replace(/:/g, '')}`,
-              notes: 'Сведения об участке верифицированы по официальному реестру торгов РФ',
+              notes: 'Данные получены из загруженного файла. Подлинность источника и актуальность не проверены',
             },
           ],
-          tags: ['ГИС Торги', 'Официальный XML', 'Верифицировано'],
+          tags: ['ГИС Торги', 'Загруженный XML', 'Не проверено'],
         });
       }
     }
