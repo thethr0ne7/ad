@@ -1,0 +1,6 @@
+{
+  "name": "DIVE Land Intelligence - Земельные ресурсы КБР",
+  "description": "Интеллектуальная система поиска, кадастрового анализа и юридической оценки земельных участков государственной и муниципальной собственности в Кабардино-Балкарской Республике.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
