@@ -15,6 +15,7 @@ interface HeaderProps {
   onOpenSourcesModal: () => void;
   onOpenCadastralSearch: () => void;
   onOpenDataImport: () => void;
+  onOpenCandidateMap: () => void;
   sourcesCount: number;
   totalParcelsCount: number;
 }
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSourcesModal,
   onOpenCadastralSearch,
   onOpenDataImport,
+  onOpenCandidateMap,
   sourcesCount,
   totalParcelsCount,
 }) => {
@@ -53,6 +55,13 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Action Tools & View Mode Controls */}
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <button
+            onClick={onOpenCandidateMap}
+            className="px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold"
+            title="Выделить потенциальный участок по карте и получить координаты"
+          >
+            Контур и координаты
+          </button>
           {/* Cadastral Online Search Button */}
           <button
             onClick={onOpenCadastralSearch}
