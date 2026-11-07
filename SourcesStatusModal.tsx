@@ -40,7 +40,7 @@ export const SourcesStatusModal: React.FC<SourcesStatusModalProps> = ({
             <div>
               <div className="flex items-center space-x-2">
                 <h3 className="font-bold text-white text-base">
-                  Официальные источники земельных данных РФ и КБР
+                  Справочные государственные порталы РФ и КБР
                 </h3>
                 <span className="text-[10px] bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded font-mono">
                   Честный аудит доступности
@@ -57,7 +57,7 @@ export const SourcesStatusModal: React.FC<SourcesStatusModalProps> = ({
               onClick={onRefresh}
               disabled={isRefreshing}
               className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition flex items-center space-x-1.5 text-xs"
-              title="Запустить диагностику подключения"
+              title="Обновить статус: интеграции не настроены"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`}
@@ -78,10 +78,10 @@ export const SourcesStatusModal: React.FC<SourcesStatusModalProps> = ({
           <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <span className="font-medium text-slate-200">
-              Особенности сетевого подключения к государственным реестрам (.gov.ru):
+              Ограничение: доступ к официальным сведениям
             </span>
             <p className="text-slate-400 text-[11px] leading-relaxed">
-              Российские государственные порталы (ГИС Торги, ПКК Росреестра, НСПД) применяют геораспределенную WAF-фильтрацию и блокируют прямые соединения из зарубежных облачных датацентров. Для обеспечения достоверности данных система использует двухуровневую интеграцию: <strong>(1) Прямые проверочные ссылки в браузере пользователя</strong> и <strong>(2) Импорт официальных выгрузок XML/GeoJSON/CSV</strong>.
+              Прямое подключение к закрытым API не реализовано. Ссылки позволяют проверить сведения самостоятельно. Можно импортировать полученный законным способом файл границ, но сам импорт не подтверждает его подлинность, полноту и актуальность.
             </p>
           </div>
         </div>
