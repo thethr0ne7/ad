@@ -1,9 +1,9 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { analyzeLandParcelWithAi } from './src/server/geminiService';
-import { INITIAL_REGISTRY_SOURCES } from './src/services/sourcesService';
-import { RegistrySourceStatus } from './src/types/land';
+import { analyzeLandParcelWithAi } from './geminiService';
+import { INITIAL_REGISTRY_SOURCES } from './sourcesService';
+import { RegistrySourceStatus } from './land';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
