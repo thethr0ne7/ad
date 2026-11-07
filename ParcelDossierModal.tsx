@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LandParcel, ParcelHistoryEntry } from '../types/land';
+import { LandParcel, ParcelHistoryEntry } from './land';
 import { Land3DScene } from './Land3DScene';
 import { AiGroundingPanel } from './AiGroundingPanel';
 import {
