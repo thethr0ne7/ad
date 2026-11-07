@@ -32,10 +32,7 @@ function apiServerPlugin(): Plugin {
         // 2. /api/sources-status
         if (req.url === '/api/sources-status' && req.method === 'GET') {
           res.setHeader('Content-Type', 'application/json');
-          const updated = INITIAL_REGISTRY_SOURCES.map((s) => ({
-            ...s,
-            lastPingMs: Math.floor(Math.random() * 45) + 50,
-          }));
+          const updated = INITIAL_REGISTRY_SOURCES.map((s) => ({ ...s, status: 'unknown', statusLabel: 'Не проверено: dev-сервер не подключён к реестру', httpStatus: 0, lastPingMs: 0, isLiveProbe: false }));
           res.end(JSON.stringify(updated));
           return;
         }
