@@ -41,6 +41,53 @@ export function toCandidateGeoJSON(points: Point[]): Feature {
   };
 }
 
+type ReferenceGeometry = Point[][];
+const inside = (p: Point, ring: Point[]) => {
+  let result = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const a = ring[i], b = ring[j];
+    if ((a.lat > p.lat) !== (b.lat > p.lat) && p.lng < (b.lng - a.lng) * (p.lat - a.lat) / (b.lat - a.lat) + a.lng) result = !result;
+  }
+  return result;
+};
+const cross = (a: Point, b: Point, c: Point) =>
+  (b.lng - a.lng) * (c.lat - a.lat) - (b.lat - a.lat) * (c.lng - a.lng);
+const onSegment = (a: Point, b: Point, c: Point) =>
+  Math.min(a.lng,b.lng) <= c.lng && c.lng <= Math.max(a.lng,b.lng) && Math.min(a.lat,b.lat) <= c.lat && c.lat <= Math.max(a.lat,b.lat);
+const segmentsTouch = (a: Point, b: Point, c: Point, d: Point) => {
+  const x = cross(a,b,c), y = cross(a,b,d), z = cross(c,d,a), w = cross(c,d,b);
+  if ((x > 0 && y < 0 || x < 0 && y > 0) && (z > 0 && w < 0 || z < 0 && w > 0)) return true;
+  return (x === 0 && onSegment(a,b,c)) || (y === 0 && onSegment(a,b,d)) ||
+    (z === 0 && onSegment(c,d,a)) || (w === 0 && onSegment(c,d,b));
+};
+const ringsOverlap = (a: Point[], b: Point[]) => {
+  if (a.length < 3 || b.length < 3) return false;
+  if (inside(a[0],b) || inside(b[0],a)) return true;
+  for (let i=0;i<a.length;i++) for(let j=0;j<b.length;j++) {
+    if (segmentsTouch(a[i],a[(i+1)%a.length],b[j],b[(j+1)%b.length])) return true;
+  }
+  return false;
+};
+const geometryPolygons = (geo: any): ReferenceGeometry => {
+  const features = geo.type === 'FeatureCollection' ? geo.features : geo.type === 'Feature' ? [geo] : [{geometry:geo}];
+  if (!Array.isArray(features) || features.length > 5000) throw new Error('Неподдерживаемый набор: максимум 5000 объектов');
+  const rings: ReferenceGeometry = [];
+  for (const feature of features) {
+    const geometry = feature?.geometry;
+    const polygons = geometry?.type === 'Polygon' ? [geometry.coordinates] : geometry?.type === 'MultiPolygon' ? geometry.coordinates : [];
+    for (const poly of polygons) {
+      const outer = poly?.[0];
+      if (!Array.isArray(outer)) continue;
+      const ring: Point[] = outer.map((pair:any) => ({ lng: Number(pair?.[0]), lat: Number(pair?.[1]) }));
+      if (ring.length < 4 || ring.length > 20000 || ring.some(p => !Number.isFinite(p.lat) || !Number.isFinite(p.lng) || Math.abs(p.lat)>90 || Math.abs(p.lng)>180))
+        throw new Error('Неверная геометрия: ожидается GeoJSON WGS84 [longitude, latitude]');
+      rings.push(ring.slice(0, -1));
+    }
+  }
+  if (!rings.length) throw new Error('В файле нет полигонов Polygon/MultiPolygon');
+  return rings;
+};
+
 const download = (name: string, content: string, mime: string) => {
   const url = URL.createObjectURL(new Blob([content], { type: mime }));
   const a = document.createElement('a');
@@ -55,6 +102,8 @@ export const CandidateMapModal: React.FC<{ onClose: () => void }> = ({ onClose }
   const mapRef = useRef<L.Map | null>(null);
   const overlayRef = useRef<L.Polygon | L.Polyline | null>(null);
   const vertexMarkers = useRef<L.CircleMarker[]>([]);
+  const referenceLayer = useRef<L.GeoJSON | null>(null);
+  const [referenceRings, setReferenceRings] = useState<ReferenceGeometry>([]);
   const pointsRef = useRef<Point[]>([]);
   const [points, setPoints] = useState<Point[]>([]);
   const [location, setLocation] = useState('43.485, 43.61');
@@ -111,6 +160,25 @@ export const CandidateMapModal: React.FC<{ onClose: () => void }> = ({ onClose }
     return () => { map.remove(); mapRef.current = null; overlayRef.current = null; vertexMarkers.current = []; };
   }, []);
 
+  const importReference = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 4_000_000) { setMessage('Файл слишком большой (максимум 4 МБ)'); return; }
+    try {
+      const geo = JSON.parse(await file.text());
+      const rings = geometryPolygons(geo);
+      referenceLayer.current?.remove();
+      referenceLayer.current = L.geoJSON(geo, {
+        style: {color:'#ef4444',weight:2,fillOpacity:0.08}
+      }).addTo(mapRef.current!);
+      setReferenceRings(rings);
+      setMessage(`Загружено ${rings.length} контуров для сопоставления. Их актуальность и юридическая полнота не подтверждены.`);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : 'Не удалось загрузить слой');
+    }
+  };
+
+  const overlaps = points.length >= 3 ? referenceRings.filter(r => ringsOverlap(points,r)).length : 0;
+
   const move = () => {
     const parts = location.trim().split(/[;,\s]+/).map(Number);
     if (parts.length !== 2 || !parts.every(Number.isFinite) || Math.abs(parts[0]) > 90 || Math.abs(parts[1]) > 180) {
@@ -152,10 +220,21 @@ export const CandidateMapModal: React.FC<{ onClose: () => void }> = ({ onClose }
               <input className="w-full mt-1 p-2 bg-slate-800 border border-slate-600 rounded" value={location} onChange={e=>setLocation(e.target.value)} />
             </label>
             <button className="px-3 py-2 bg-slate-700 rounded w-full text-white" onClick={move}>Перейти к координатам</button>
+            <label className="block text-slate-200">Загрузить слой известных границ (GeoJSON WGS84)
+              <input type="file" accept=".geojson,.json,application/geo+json" onChange={e=>{void importReference(e.target.files?.[0]);}} className="block w-full mt-1 text-xs text-slate-300" />
+            </label>
+            <p className="text-xs text-slate-400">Проверка пересечения доступна только по предоставленному слою. Пустой или неполный слой не доказывает отсутствие чьих-либо прав.</p>
             <div className="bg-slate-800 p-3 rounded space-y-1 text-slate-200">
               <p>Вершин: <strong>{points.length}</strong></p>
               <p>Расчётная площадь: <strong>{estimateAreaHa(points).toFixed(4)} га</strong></p>
               <p className="text-amber-300">Правовой статус: не установлен</p>
+              <p>Контуров в сравнительном слое: <strong>{referenceRings.length}</strong></p>
+              <p className={overlaps > 0 ? 'text-rose-300' : 'text-slate-300'}>
+                {referenceRings.length === 0 ? 'Пересечение: нет загруженных данных' :
+                  points.length < 3 ? 'Пересечение: нарисуйте контур' :
+                  overlaps > 0 ? `Пересечения с загруженным слоем: ${overlaps}` :
+                  'Пересечений в загруженном слое не найдено (не является подтверждением свободного статуса)'}
+              </p>
               <p className="text-xs text-slate-400">Площадь предварительная, не кадастровая.</p>
             </div>
             <div className="flex gap-2">
