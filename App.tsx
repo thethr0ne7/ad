@@ -5,6 +5,8 @@ import { ParcelCard } from './components/ParcelCard';
 import { LandMapView } from './components/LandMapView';
 import { ParcelDossierModal } from './components/ParcelDossierModal';
 import { SourcesStatusModal } from './components/SourcesStatusModal';
+import { CadastralSearchModal } from './components/CadastralSearchModal';
+import { DataImportModal } from './components/DataImportModal';
 import { QuotaExceededBanner } from './components/QuotaExceededBanner';
 import { KBR_LAND_PARCELS } from './data/kbrLandRegistry';
 import { INITIAL_REGISTRY_SOURCES } from './services/sourcesService';
@@ -18,6 +20,9 @@ import {
   Layers,
   Database,
   Info,
+  CheckCircle,
+  FileCheck,
+  X,
 } from 'lucide-react';
 
 export default function App() {
@@ -29,11 +34,17 @@ export default function App() {
   );
   const [isRefreshingSources, setIsRefreshingSources] = useState(false);
   const [isSourcesModalOpen, setIsSourcesModalOpen] = useState(false);
+  const [isCadastralSearchOpen, setIsCadastralSearchOpen] = useState(false);
+  const [isDataImportOpen, setIsDataImportOpen] = useState(false);
+
+  // Dynamic state for land parcels (preloaded with verified KBR parcels + supports user imports)
+  const [parcels, setParcels] = useState<LandParcel[]>(KBR_LAND_PARCELS);
+  const [importNotification, setImportNotification] = useState<string | null>(null);
 
   const [viewMode, setViewMode] = useState<'split' | 'map' | 'list'>('split');
   const [selectedParcel, setSelectedParcel] = useState<LandParcel | null>(null);
   const [dossierInitialTab, setDossierInitialTab] = useState<
-    'overview' | '3d' | 'legal' | 'economics' | 'documents' | 'ai'
+    'overview' | '3d' | 'legal' | 'economics' | 'documents' | 'history' | 'ai'
   >('overview');
 
   // Search Filter State
@@ -69,29 +80,60 @@ export default function App() {
     }
   }, [apiKey]);
 
-  // Refresh sources status
+  // Refresh sources status with honest live probes
   const handleRefreshSources = async () => {
     setIsRefreshingSources(true);
     try {
       const res = await fetch('/api/sources-status');
-      const data = await res.json();
-      setSources(data);
+      if (res.ok) {
+        const data = await res.json();
+        setSources(data);
+      }
     } catch {
-      // Fallback update
-      setSources((prev) =>
-        prev.map((s) => ({
-          ...s,
-          lastPingMs: Math.floor(Math.random() * 40) + 50,
-        }))
-      );
+      // Keep existing status if server route unreachable
     } finally {
       setIsRefreshingSources(false);
     }
   };
 
+  // Import handler for XML / GeoJSON / CSV
+  const handleImportSuccess = (imported: LandParcel[]) => {
+    if (!imported.length) return;
+
+    setParcels((prev) => {
+      const existingCadastrals = new Set(prev.map((p) => p.cadastralNumber));
+      const newItems = imported.filter((p) => !existingCadastrals.has(p.cadastralNumber));
+      return [...newItems, ...prev];
+    });
+
+    setImportNotification(`Успешно импортировано ${imported.length} объектов из официальной выгрузки.`);
+    setSelectedParcel(imported[0]);
+    setDossierInitialTab('overview');
+
+    setTimeout(() => {
+      setImportNotification(null);
+    }, 6000);
+  };
+
+  const handleAddParcel = (newParcel: LandParcel) => {
+    setParcels((prev) => {
+      if (prev.some((p) => p.cadastralNumber === newParcel.cadastralNumber)) {
+        return prev;
+      }
+      return [newParcel, ...prev];
+    });
+  };
+
+  const handleUpdateParcel = (updated: LandParcel) => {
+    setParcels((prev) =>
+      prev.map((p) => (p.id === updated.id ? updated : p))
+    );
+    setSelectedParcel(updated);
+  };
+
   // Filter parcels
   const filteredParcels = useMemo(() => {
-    return KBR_LAND_PARCELS.filter((parcel) => {
+    return parcels.filter((parcel) => {
       // 1. District
       if (filters.district !== 'all' && parcel.district !== filters.district) {
         return false;
@@ -189,7 +231,7 @@ export default function App() {
 
       return true;
     });
-  }, [filters]);
+  }, [parcels, filters]);
 
   const handleResetFilters = () => {
     setFilters({
@@ -227,9 +269,27 @@ export default function App() {
         viewMode={viewMode}
         onChangeViewMode={setViewMode}
         onOpenSourcesModal={() => setIsSourcesModalOpen(true)}
+        onOpenCadastralSearch={() => setIsCadastralSearchOpen(true)}
+        onOpenDataImport={() => setIsDataImportOpen(true)}
         sourcesCount={sources.length}
-        totalParcelsCount={KBR_LAND_PARCELS.length}
+        totalParcelsCount={parcels.length}
       />
+
+      {/* Notification Toast for Import */}
+      {importNotification && (
+        <div className="bg-emerald-950/90 border-b border-emerald-800 text-emerald-200 px-4 py-2.5 text-xs flex items-center justify-between shadow-md">
+          <div className="flex items-center space-x-2 max-w-7xl mx-auto w-full">
+            <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="font-medium">{importNotification}</span>
+          </div>
+          <button
+            onClick={() => setImportNotification(null)}
+            className="p-1 text-emerald-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col space-y-4">
@@ -273,7 +333,7 @@ export default function App() {
 
           <div className="flex items-center space-x-2 text-[11px] text-slate-400">
             <Info className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Кадастровый округ: 07 (КБР)</span>
+            <span>Кадастровый округ: 07 (КБР) • Участков в базе: {parcels.length}</span>
           </div>
         </div>
 
@@ -290,14 +350,22 @@ export default function App() {
                       Участки по заданным критериям не найдены
                     </div>
                     <p className="text-xs text-slate-400">
-                      Попробуйте расширить диапазон площади или сбросить фильтры
+                      Попробуйте расширить диапазон площади, сбросить фильтры или импортировать кадастровые данные
                     </p>
-                    <button
-                      onClick={handleResetFilters}
-                      className="mt-2 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium"
-                    >
-                      Сбросить фильтры
-                    </button>
+                    <div className="pt-2 flex justify-center gap-2">
+                      <button
+                        onClick={handleResetFilters}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium"
+                      >
+                        Сбросить фильтры
+                      </button>
+                      <button
+                        onClick={() => setIsDataImportOpen(true)}
+                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-lg text-xs font-medium"
+                      >
+                        Импорт выгрузки
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   filteredParcels.map((parcel) => (
@@ -369,12 +437,13 @@ export default function App() {
         </div>
       </main>
 
-      {/* Parcel Dossier Modal (Complete 6-tab Dossier & 3D Topography) */}
+      {/* Parcel Dossier Modal (Complete 7-tab Dossier & 3D Topography) */}
       {selectedParcel && (
         <ParcelDossierModal
           parcel={selectedParcel}
           initialTab={dossierInitialTab}
           onClose={() => setSelectedParcel(null)}
+          onUpdateParcel={handleUpdateParcel}
         />
       )}
 
@@ -385,6 +454,28 @@ export default function App() {
           isRefreshing={isRefreshingSources}
           onRefresh={handleRefreshSources}
           onClose={() => setIsSourcesModalOpen(false)}
+          onOpenImport={() => setIsDataImportOpen(true)}
+        />
+      )}
+
+      {/* Cadastral Online Search Modal */}
+      {isCadastralSearchOpen && (
+        <CadastralSearchModal
+          onClose={() => setIsCadastralSearchOpen(false)}
+          onSelectParcel={(p) => {
+            setSelectedParcel(p);
+            setDossierInitialTab('overview');
+          }}
+          onAddParcel={handleAddParcel}
+          existingParcels={parcels}
+        />
+      )}
+
+      {/* Official Data Import Modal (XML, GeoJSON, CSV) */}
+      {isDataImportOpen && (
+        <DataImportModal
+          onClose={() => setIsDataImportOpen(false)}
+          onImportSuccess={handleImportSuccess}
         />
       )}
 

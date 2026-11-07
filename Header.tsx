@@ -5,15 +5,16 @@ import {
   Map,
   List,
   Layers,
-  Sparkles,
-  Shield,
-  Radio,
+  Search,
+  Upload,
 } from 'lucide-react';
 
 interface HeaderProps {
   viewMode: 'split' | 'map' | 'list';
   onChangeViewMode: (mode: 'split' | 'map' | 'list') => void;
   onOpenSourcesModal: () => void;
+  onOpenCadastralSearch: () => void;
+  onOpenDataImport: () => void;
   sourcesCount: number;
   totalParcelsCount: number;
 }
@@ -22,6 +23,8 @@ export const Header: React.FC<HeaderProps> = ({
   viewMode,
   onChangeViewMode,
   onOpenSourcesModal,
+  onOpenCadastralSearch,
+  onOpenDataImport,
   sourcesCount,
   totalParcelsCount,
 }) => {
@@ -48,17 +51,39 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Status & View Mode Controls */}
-        <div className="flex items-center space-x-2.5 w-full sm:w-auto justify-between sm:justify-end">
+        {/* Action Tools & View Mode Controls */}
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          {/* Cadastral Online Search Button */}
+          <button
+            onClick={onOpenCadastralSearch}
+            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 hover:text-white flex items-center space-x-1.5 transition shadow-sm"
+            title="Проверка кадастрового номера Росреестра"
+          >
+            <Search className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden md:inline">Кадастровый поиск</span>
+            <span className="md:hidden">Поиск</span>
+          </button>
+
+          {/* Official Data Import Button */}
+          <button
+            onClick={onOpenDataImport}
+            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 hover:text-white flex items-center space-x-1.5 transition shadow-sm"
+            title="Импорт официальных XML / GeoJSON / CSV"
+          >
+            <Upload className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden md:inline">Импорт КПТ</span>
+            <span className="md:hidden">Импорт</span>
+          </button>
+
           {/* Sources Status Button */}
           <button
             onClick={onOpenSourcesModal}
-            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-300 hover:text-white flex items-center space-x-2 transition"
+            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-medium text-slate-300 hover:text-white flex items-center space-x-1.5 transition"
             title="Просмотр статуса подключения официальных источников"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm" />
             <Database className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden md:inline">Источники данных:</span>
+            <span className="hidden lg:inline">Источники:</span>
             <strong className="text-white">{sourcesCount} реестров</strong>
           </button>
 

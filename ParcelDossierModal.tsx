@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LandParcel } from '../types/land';
+import { LandParcel, ParcelHistoryEntry } from '../types/land';
 import { Land3DScene } from './Land3DScene';
 import { AiGroundingPanel } from './AiGroundingPanel';
 import {
@@ -24,23 +24,36 @@ import {
   Droplets,
   Flame,
   Award,
-  ChevronRight,
+  History,
+  PlusCircle,
+  Clock,
+  UserCheck,
 } from 'lucide-react';
 
 interface ParcelDossierModalProps {
   parcel: LandParcel;
   onClose: () => void;
-  initialTab?: 'overview' | '3d' | 'legal' | 'economics' | 'documents' | 'ai';
+  initialTab?: 'overview' | '3d' | 'legal' | 'economics' | 'documents' | 'ai' | 'history';
+  onUpdateParcel?: (updatedParcel: LandParcel) => void;
 }
 
 export const ParcelDossierModal: React.FC<ParcelDossierModalProps> = ({
   parcel,
   onClose,
   initialTab = 'overview',
+  onUpdateParcel,
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'overview' | '3d' | 'legal' | 'economics' | 'documents' | 'ai'
+    'overview' | '3d' | 'legal' | 'economics' | 'documents' | 'ai' | 'history'
   >(initialTab);
+
+  // New history entry form state
+  const [newEventAction, setNewEventAction] = useState(
+    'Подача заявления о предварительном согласовании предоставления земельного участка (ст. 39.15 ЗК РФ)'
+  );
+  const [newEventAuthor, setNewEventAuthor] = useState('Заявитель (Глава КФХ)');
+  const [newEventDocNum, setNewEventDocNum] = useState('');
+  const [newEventNotes, setNewEventNotes] = useState('');
 
   const handlePrint = () => {
     window.print();
@@ -59,6 +72,33 @@ export const ParcelDossierModal: React.FC<ParcelDossierModalProps> = ({
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
+  };
+
+  const handleAddHistoryEntry = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEventAction.trim()) return;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const newEntry: ParcelHistoryEntry = {
+      id: `hist-user-${Date.now()}`,
+      date: `${todayStr} (Сегодня)`,
+      action: newEventAction.trim(),
+      author: newEventAuthor.trim() || 'Пользователь системы DIVE',
+      documentNumber: newEventDocNum.trim() || undefined,
+      notes: newEventNotes.trim() || undefined,
+    };
+
+    const updated: LandParcel = {
+      ...parcel,
+      history: [newEntry, ...(parcel.history || [])],
+    };
+
+    if (onUpdateParcel) {
+      onUpdateParcel(updated);
+    }
+
+    setNewEventDocNum('');
+    setNewEventNotes('');
   };
 
   return (
@@ -180,6 +220,23 @@ export const ParcelDossierModal: React.FC<ParcelDossierModalProps> = ({
           >
             <Layers className="w-3.5 h-3.5" />
             <span>Пакет документов</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-3 py-2.5 border-b-2 flex items-center space-x-1.5 transition shrink-0 ${
+              activeTab === 'history'
+                ? 'border-emerald-500 text-emerald-400 font-semibold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>История изменений & Аудит</span>
+            {parcel.history && parcel.history.length > 0 && (
+              <span className="bg-slate-800 text-emerald-400 px-1.5 py-0.2 rounded-full text-[10px]">
+                {parcel.history.length}
+              </span>
+            )}
           </button>
 
           <button
@@ -665,7 +722,155 @@ export const ParcelDossierModal: React.FC<ParcelDossierModalProps> = ({
             </div>
           )}
 
-          {/* TAB 6: AI MAPS GROUNDING */}
+          {/* TAB 6: AUDIT TRAIL & HISTORY */}
+          {activeTab === 'history' && (
+            <div className="space-y-6">
+              {/* Add New Event Form */}
+              <div className="p-4 bg-slate-800/40 border border-slate-700/80 rounded-xl space-y-3">
+                <h4 className="font-semibold text-white text-sm flex items-center space-x-2">
+                  <PlusCircle className="w-4 h-4 text-emerald-400" />
+                  <span>Внести запись в юридическую историю участка</span>
+                </h4>
+
+                <form onSubmit={handleAddHistoryEntry} className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">
+                        Действие / Юридический факт:
+                      </label>
+                      <select
+                        value={newEventAction}
+                        onChange={(e) => setNewEventAction(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="Подача заявления о предварительном согласовании предоставления земельного участка (ст. 39.15 ЗК РФ)">
+                          Подача заявления по ст. 39.15 ЗК РФ (предварительное согласование)
+                        </option>
+                        <option value="Подача заявления о предоставлении участка в аренду без торгов (ст. 39.18 ЗК РФ)">
+                          Подача заявления по ст. 39.18 ЗК РФ (аренда без торгов)
+                        </option>
+                        <option value="Выполнение схемы расположения земельного участка на КПТ">
+                          Выполнение схемы расположения на КПТ (кадастровый инженер)
+                        </option>
+                        <option value="Проведение полевого обследования и фотофиксации">
+                          Полевое обследование и фотофиксация рельефа/коммуникаций
+                        </option>
+                        <option value="Запрос технических условий подключения к сетям (электроэнергия/газ)">
+                          Запрос техусловий подключения (Россети / Газпром)
+                        </option>
+                        <option value="Публикация официального извещения в печатном органе района">
+                          Публикация извещения в районной газете
+                        </option>
+                        <option value="Заключение договора аренды земельного участка">
+                          Заключение договора аренды с уполномоченным органом
+                        </option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">
+                        Ответственное лицо / Заявитель:
+                      </label>
+                      <input
+                        type="text"
+                        value={newEventAuthor}
+                        onChange={(e) => setNewEventAuthor(e.target.value)}
+                        placeholder="Глава КФХ / Кадастровый инженер"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">
+                        Номер документа / Входящий номер:
+                      </label>
+                      <input
+                        type="text"
+                        value={newEventDocNum}
+                        onChange={(e) => setNewEventDocNum(e.target.value)}
+                        placeholder="Вх. № 07-МЗИО/2026-..."
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">
+                        Примечания и юридические комментарии:
+                      </label>
+                      <input
+                        type="text"
+                        value={newEventNotes}
+                        onChange={(e) => setNewEventNotes(e.target.value)}
+                        placeholder="Принято к рассмотрению, срок ответа 30 дней..."
+                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium text-xs flex items-center space-x-1.5 transition shadow-sm"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>Зафиксировать в аудит-логе</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* History Timeline */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-white text-sm flex items-center space-x-2">
+                  <History className="w-4 h-4 text-emerald-400" />
+                  <span>Хронология кадастровых и юридических действий по участку</span>
+                </h4>
+
+                {(!parcel.history || parcel.history.length === 0) ? (
+                  <div className="p-6 bg-slate-900 border border-slate-800 rounded-xl text-center text-slate-400 text-xs">
+                    История действий по участку пуста. Используйте форму выше для фиксации подачи заявлений.
+                  </div>
+                ) : (
+                  <div className="relative border-l border-slate-800 ml-3 space-y-4 py-1">
+                    {parcel.history.map((entry) => (
+                      <div key={entry.id} className="relative pl-6">
+                        <div className="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-slate-900" />
+                        <div className="p-3 bg-slate-800/60 border border-slate-700/70 rounded-xl space-y-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px]">
+                            <span className="font-bold text-white text-xs">
+                              {entry.action}
+                            </span>
+                            <span className="text-emerald-400 font-mono font-medium flex items-center space-x-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{entry.date}</span>
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
+                            <span className="flex items-center space-x-1">
+                              <UserCheck className="w-3 h-3 text-slate-400" />
+                              <span>{entry.author}</span>
+                            </span>
+                            {entry.documentNumber && (
+                              <span>Документ: <strong className="text-slate-300">{entry.documentNumber}</strong></span>
+                            )}
+                          </div>
+
+                          {entry.notes && (
+                            <p className="text-slate-300 text-xs pt-1 leading-relaxed">
+                              {entry.notes}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7: AI MAPS GROUNDING */}
           {activeTab === 'ai' && (
             <AiGroundingPanel parcel={parcel} />
           )}

@@ -82,17 +82,20 @@ export interface LegalAnalysisResult {
   auctionNoticeNumber?: string;
   auctionPublicationDate?: string;
   auctionBiddingDeadline?: string;
+  verificationSource: 'ГИС Торги (официальный лот)' | 'Росреестр (ЕГРН КПТ)' | 'НСПД (свободный контур)' | 'Минземимущество КБР';
   applicableLaws: Array<{
     law: string;
     article: string;
     summary: string;
     linkUrl?: string;
+    isVerifiedFact: boolean;
   }>;
   restrictionsAndEncumbrances: Array<{
     type: string;
     description: string;
     severity: 'low' | 'medium' | 'high';
     isBlocking: boolean;
+    statutoryBasis: string;
   }>;
   stepByStepActionPlan: Array<{
     stepNumber: number;
@@ -135,6 +138,16 @@ export interface EconomicAssessment {
   projectedPaybackYears: number;
 }
 
+export interface ParcelHistoryEntry {
+  id: string;
+  date: string;
+  action: string;
+  author: string;
+  documentNumber?: string;
+  statusChange?: string;
+  notes?: string;
+}
+
 export interface LandParcel {
   id: string;
   cadastralNumber: string;
@@ -158,10 +171,12 @@ export interface LandParcel {
   sourceExternalId: string;
   sourceUrl: string;
   discoveryDate: string;
+  verificationStatus: 'verified_official_registry' | 'published_torgi' | 'municipal_fund' | 'unallocated_contour';
   utilities: UtilitySpecs;
   agro: AgroSpecs;
   legal: LegalAnalysisResult;
   economics: EconomicAssessment;
+  history: ParcelHistoryEntry[];
   tags: string[];
 }
 
@@ -188,10 +203,33 @@ export interface RegistrySourceStatus {
   name: string;
   shortName: string;
   url: string;
-  status: 'connected' | 'partially_available' | 'maintenance' | 'offline';
+  status: 'connected' | 'partially_available' | 'restricted_geo' | 'timeout' | 'offline';
+  statusLabel: string;
+  httpStatus?: number;
   lastPingMs: number;
   lastSyncTime: string;
   totalRecordsFound: number;
   description: string;
   protocol: string;
+  diagnosticDetails: string;
+  isLiveProbe: boolean;
+}
+
+export interface CadastralVerificationResult {
+  isValidCadastralFormat: boolean;
+  cadastralNumber: string;
+  regionCode: string; // "07"
+  regionName: string; // "Кабардино-Балкарская Республика"
+  districtCode: string;
+  districtName: string;
+  quarterCode: string;
+  isRegisteredInKbrRegistry: boolean;
+  matchedParcel?: LandParcel;
+  directLinks: {
+    rosreestrPkkUrl: string;
+    nspdUrl: string;
+    gisTorgiUrl: string;
+    egrnPortalUrl: string;
+  };
+  legalAnalysisSummary: string;
 }

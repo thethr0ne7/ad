@@ -10,6 +10,7 @@ export interface LegalInput {
   nearWaterBody: boolean;
   nearPowerLineOrGas: boolean;
   targetPurpose: string;
+  sourceType?: string;
 }
 
 /**
@@ -41,6 +42,7 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
       summary:
         'Особенности предоставления земельных участков, находящихся в государственной или муниципальной собственности, гражданам для индивидуального жилищного строительства, ведения личного подсобного хозяйства, гражданам и крестьянским (фермерским) хозяйствам для осуществления крестьянским (фермерским) хозяйством его деятельности.',
       linkUrl: 'https://www.consultant.ru/document/cons_doc_LAW_33773/5fd52f829f0c2a86c67ef64f33100ca412e6bf54/',
+      isVerifiedFact: true,
     },
     {
       law: 'Земельный кодекс Российской Федерации (ЗК РФ)',
@@ -48,6 +50,7 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
       summary:
         'Договор аренды земельного участка, находящегося в государственной или муниципальной собственности, заключается без проведения торгов в случае предоставления земельного участка крестьянскому (фермерскому) хозяйству или сельскохозяйственной организации в случаях, установленных Федеральным законом "Об обороте земель сельскохозяйственного назначения".',
       linkUrl: 'https://www.consultant.ru/document/cons_doc_LAW_33773/25ee65eebff30dd821be0d53c3e80c44c59fe51f/',
+      isVerifiedFact: true,
     },
     {
       law: 'Федеральный закон № 101-ФЗ',
@@ -55,6 +58,7 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
       summary:
         'Земельные участки из земель сельскохозяйственного назначения, находящиеся в государственной или муниципальной собственности, могут передаваться гражданам и крестьянским (фермерским) хозяйствам в аренду на срок до пяти лет без проведения торгов.',
       linkUrl: 'https://www.consultant.ru/document/cons_doc_LAW_37816/',
+      isVerifiedFact: true,
     },
     {
       law: 'Закон Кабардино-Балкарской Республики № 33-РЗ',
@@ -62,6 +66,7 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
       summary:
         'Об обороте земель сельскохозяйственного назначения в КБР. Устанавливает предельные минимальные и максимальные размеры участков сельхозназначения, особенности предоставления в аренду и сохранение ценных угодий.',
       linkUrl: 'https://pravitelstvo.kbr.ru/',
+      isVerifiedFact: true,
     },
   ];
 
@@ -72,6 +77,7 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
       summary:
         'О внесении изменений в Федеральный закон "Об основах туристской деятельности в РФ" и статью 77 Земельного кодекса РФ: разрешено размещение некапитальных средств размещения и объектов сельского туризма на землях с/х назначения.',
       linkUrl: 'https://www.consultant.ru/document/cons_doc_LAW_389278/',
+      isVerifiedFact: true,
     });
   }
 
@@ -85,6 +91,7 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
         'Ширина водоохранной зоны реки/канала составляет от 50 до 200 метров. Запрещено размещение складов ГСМ, применение ядохимикатов авиаметодом, сброс сточных вод.',
       severity: 'medium',
       isBlocking: false,
+      statutoryBasis: 'Водный кодекс РФ, статья 65',
     });
   }
 
@@ -95,6 +102,7 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
         'Ограничения на капитальное строительство в полосе 10–25 м от оси ЛЭП или магистрального газопровода. Сельскохозяйственная обработка почвы и выпас скота разрешены.',
       severity: 'low',
       isBlocking: false,
+      statutoryBasis: 'Постановление Правительства РФ № 160 (ЛЭП) и № 878 (газораспределительные сети)',
     });
   }
 
@@ -105,6 +113,7 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
       'Сельхозугодия подлежат особой охране. Изменение ВРИ на несельскохозяйственный запрещено. Разрешено целевое ведение фермерского хозяйства, садоводства и овощеводства.',
     severity: 'low',
     isBlocking: false,
+    statutoryBasis: 'Закон КБР № 33-РЗ «Об обороте земель с/х назначения в КБР»',
   });
 
   // Action plan
@@ -191,11 +200,20 @@ export function evaluateLegalStatus(input: LegalInput): LegalAnalysisResult {
     },
   ];
 
+  const verificationSource = input.hasAuctionNotice
+    ? ('ГИС Торги (официальный лот)' as const)
+    : input.sourceType === 'НСПД'
+    ? ('НСПД (свободный контур)' as const)
+    : input.sourceType === 'Минземимущество КБР'
+    ? ('Минземимущество КБР' as const)
+    : ('Росреестр (ЕГРН КПТ)' as const);
+
   return {
     isEligibleDirectLeaseWithoutAuction: isEligibleDirectLease,
     directLeaseArticle: 'ст. 39.18 ЗК РФ + пп. 12 п. 2 ст. 39.6 ЗК РФ',
     requiresTerritorySchemeKPT: true,
     hasAuctionNoticePublished: input.hasAuctionNotice,
+    verificationSource,
     applicableLaws,
     restrictionsAndEncumbrances: restrictions,
     stepByStepActionPlan,
