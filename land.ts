@@ -203,7 +203,7 @@ export interface RegistrySourceStatus {
   name: string;
   shortName: string;
   url: string;
-  status: 'connected' | 'partially_available' | 'restricted_geo' | 'timeout' | 'offline';
+  status: 'unknown' | 'connected' | 'partially_available' | 'restricted_geo' | 'timeout' | 'offline';
   statusLabel: string;
   httpStatus?: number;
   lastPingMs: number;
