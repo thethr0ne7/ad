@@ -1,4 +1,4 @@
-import { LandCategory, OwnershipType, LegalAnalysisResult } from '../types/land';
+import { LandCategory, OwnershipType, LegalAnalysisResult } from './land';
 
 export interface LegalInput {
   category: LandCategory;

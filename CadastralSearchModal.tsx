@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { verifyCadastralNumber } from '../utils/cadastralVerifier';
-import { LandParcel, CadastralVerificationResult } from '../types/land';
-import { evaluateLegalStatus } from '../utils/legalEngine';
-import { calculateEconomics } from '../utils/economics';
+import { verifyCadastralNumber } from './cadastralVerifier';
+import { LandParcel, CadastralVerificationResult } from './land';
+import { evaluateLegalStatus } from './legalEngine';
+import { calculateEconomics } from './economics';
 import {
   X,
   Search,
@@ -52,118 +52,13 @@ export const CadastralSearchModal: React.FC<CadastralSearchModalProps> = ({
     setVerificationResult(verifyCadastralNumber(num));
   };
 
+  // Format validation is not an EGRN lookup. Never create an invented parcel.
   const handleAddAndInspect = () => {
     if (!verificationResult.isValidCadastralFormat) return;
-
     if (verificationResult.matchedParcel) {
       onSelectParcel(verificationResult.matchedParcel);
       onClose();
-      return;
     }
-
-    // Create a new evaluated parcel for the user's workspace
-    const district = (verificationResult.districtName.includes('Урванский')
-      ? 'Урванский район'
-      : verificationResult.districtName.includes('Чегемский')
-      ? 'Чегемский район'
-      : verificationResult.districtName.includes('Черекский')
-      ? 'Черекский район'
-      : verificationResult.districtName.includes('Прохладненский')
-      ? 'Прохладненский район'
-      : verificationResult.districtName.includes('Баксанский')
-      ? 'Баксанский район'
-      : verificationResult.districtName.includes('Зольский')
-      ? 'Зольский район'
-      : 'Урванский район') as any;
-
-    const areaHa = 30.0;
-    const utilities = {
-      hasRoadAccess: true,
-      roadType: 'Асфальтированная' as const,
-      distanceToHighwayKm: 1.0,
-      hasElectricity: true,
-      electricityDistanceM: 100,
-      substationCapacityKva: 160,
-      hasGas: true,
-      gasDistanceM: 200,
-      waterSource: 'Река/канал (открытый водозабор)' as const,
-      distanceToWaterM: 150,
-      reliefType: 'Равнинный' as const,
-      elevationMeters: 380,
-    };
-
-    const legal = evaluateLegalStatus({
-      category: 'Земли сельскохозяйственного назначения',
-      permittedUseCode: '1.5',
-      areaHa,
-      ownership: 'Государственная (неразграниченная)',
-      district,
-      hasAuctionNotice: false,
-      nearWaterBody: true,
-      nearPowerLineOrGas: false,
-      targetPurpose: 'orchard',
-    });
-
-    const economics = calculateEconomics({
-      areaHa,
-      district,
-      purpose: 'orchard',
-      utilities,
-    });
-
-    const now = new Date().toISOString().split('T')[0];
-    const newParcel: LandParcel = {
-      id: `custom-${Date.now()}`,
-      cadastralNumber: verificationResult.cadastralNumber,
-      name: `Проверенный участок (${verificationResult.districtName})`,
-      district,
-      municipality: verificationResult.districtName,
-      nearestSettlement: verificationResult.districtName,
-      areaHa,
-      category: 'Земли сельскохозяйственного назначения',
-      permittedUseCode: '1.5',
-      permittedUseTitle: 'Садоводство',
-      suitablePurposes: ['orchard', 'kfh'],
-      ownership: 'Государственная (неразграниченная)',
-      coordinates: { lat: 43.52, lng: 43.72 },
-      boundary: [
-        { lat: 43.517, lng: 43.716 },
-        { lat: 43.523, lng: 43.718 },
-        { lat: 43.522, lng: 43.725 },
-        { lat: 43.516, lng: 43.723 },
-      ],
-      neighboringPlots: [],
-      sourceType: 'Росреестр (ЕГРН)',
-      sourceExternalId: `CAD-INQ-${verificationResult.cadastralNumber.replace(/:/g, '')}`,
-      sourceUrl: verificationResult.directLinks.rosreestrPkkUrl,
-      discoveryDate: now,
-      verificationStatus: 'verified_official_registry',
-      utilities,
-      agro: {
-        soilType: 'Предкавказский выщелоченный чернозем',
-        bonitetScore: 86,
-        annualPrecipitationMm: 580,
-        frostFreePeriodDays: 190,
-        activeTempSum: 3250,
-        recommendedCrops: ['Интенсивные сады', 'Овощные культуры'],
-      },
-      legal,
-      economics,
-      history: [
-        {
-          id: `hist-${Date.now()}`,
-          date: `${now} (Сегодня)`,
-          action: 'Кадастровая онлайн-проверка и правовой анализ ст. 39.18 ЗК РФ',
-          author: 'DIVE Cadastral Verifier',
-          notes: 'Участок добавлен в рабочий реестр пользователя после проверки структуры Росреестра',
-        },
-      ],
-      tags: ['Онлайн-проверка', 'Верифицировано', 'Ст. 39.18 ЗК РФ'],
-    };
-
-    onAddParcel(newParcel);
-    onSelectParcel(newParcel);
-    onClose();
   };
 
   return (
@@ -393,7 +288,7 @@ export const CadastralSearchModal: React.FC<CadastralSearchModalProps> = ({
         {/* Footer actions */}
         <div className="p-4 border-t border-slate-800 bg-slate-950/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <span className="text-slate-400">
-            Официальный формат Росреестра: <strong>07:XX:XXXXXXX:XXXX</strong>
+            Формат номера не подтверждает регистрацию, право собственности или границы. Официальный формат Росреестра: <strong>07:XX:XXXXXXX:XXXX</strong>
           </span>
 
           <div className="flex items-center space-x-2">
@@ -404,7 +299,7 @@ export const CadastralSearchModal: React.FC<CadastralSearchModalProps> = ({
               Закрыть
             </button>
 
-            {verificationResult.isValidCadastralFormat && (
+            {verificationResult.isValidCadastralFormat && verificationResult.matchedParcel && (
               <button
                 onClick={handleAddAndInspect}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold flex items-center space-x-2 transition shadow-md shadow-emerald-900/30"

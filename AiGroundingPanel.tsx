@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LandParcel } from '../types/land';
+import { LandParcel } from './land';
 import {
   Sparkles,
   MapPin,

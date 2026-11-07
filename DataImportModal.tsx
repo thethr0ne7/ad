@@ -5,8 +5,8 @@ import {
   SAMPLE_NSPD_GEOJSON,
   SAMPLE_MUNICIPAL_CSV,
   ImportResult,
-} from '../utils/dataImporter';
-import { LandParcel } from '../types/land';
+} from './dataImporter';
+import { LandParcel } from './land';
 import {
   X,
   FileCode,

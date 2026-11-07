@@ -171,7 +171,7 @@ export interface LandParcel {
   sourceExternalId: string;
   sourceUrl: string;
   discoveryDate: string;
-  verificationStatus: 'verified_official_registry' | 'published_torgi' | 'municipal_fund' | 'unallocated_contour';
+  verificationStatus: 'unverified_import' | 'verified_official_registry' | 'published_torgi' | 'municipal_fund' | 'unallocated_contour';
   utilities: UtilitySpecs;
   agro: AgroSpecs;
   legal: LegalAnalysisResult;
@@ -203,7 +203,7 @@ export interface RegistrySourceStatus {
   name: string;
   shortName: string;
   url: string;
-  status: 'connected' | 'partially_available' | 'restricted_geo' | 'timeout' | 'offline';
+  status: 'unknown' | 'connected' | 'partially_available' | 'restricted_geo' | 'timeout' | 'offline';
   statusLabel: string;
   httpStatus?: number;
   lastPingMs: number;

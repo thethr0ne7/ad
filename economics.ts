@@ -1,4 +1,4 @@
-import { EconomicAssessment, SearchPurpose, UtilitySpecs } from '../types/land';
+import { EconomicAssessment, SearchPurpose, UtilitySpecs } from './land';
 
 export interface EconomicsInput {
   areaHa: number;

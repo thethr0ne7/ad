@@ -7,7 +7,7 @@ import {
   InfoWindow,
   useMap,
 } from '@vis.gl/react-google-maps';
-import { LandParcel } from '../types/land';
+import { LandParcel } from './land';
 import { Layers, MapPin, Maximize2, ShieldCheck, Zap } from 'lucide-react';
 
 interface LandMapViewProps {

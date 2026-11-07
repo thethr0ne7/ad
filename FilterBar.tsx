@@ -1,5 +1,5 @@
 import React from 'react';
-import { SearchFilterState, KbrDistrict, SearchPurpose, LandCategory, OwnershipType } from '../types/land';
+import { SearchFilterState, KbrDistrict, SearchPurpose, LandCategory, OwnershipType } from './land';
 import {
   Search,
   SlidersHorizontal,
